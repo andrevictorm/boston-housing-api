@@ -1,23 +1,33 @@
+import joblib
+import os
+import urllib.request
 from fastapi import FastAPI, HTTPException, Header
 from pydantic import BaseModel, Field
 from typing import List
-import joblib
 import pandas as pd
 
-# Carrega o modelo
-model = joblib.load('/content/model/boston_model.pkl')
+# ---------- BAIXA O MODELO AUTOMATICAMENTE ----------
+MODEL_PATH = "boston_model.pkl"
+
+if not os.path.exists(MODEL_PATH):
+    print("Primeira execução no Railway: baixando modelo (~139MB)...")
+    url = "https://drive.google.com/uc?export=download&id=1f8eK9j8sL8qX9v2kPqR5tY7uI9oP2mN5"
+    urllib.request.urlretrieve(url, MODEL_PATH)
+    print("Modelo baixado com sucesso!")
+
+model = joblib.load(MODEL_PATH)
+# ---------------------------------------------------
 
 app = FastAPI(
-    title="API Boston Housing - Produção",
-    description="Batch prediction + API Key (produção)",
-    version="3.0.0"
+    title="Boston Housing Price API - André Victor",
+    description="Batch prediction + API Key + modelo carregado automaticamente",
+    version="3.0"
 )
 
-# MUDE ESSA CHAVE PARA UMA FORTE! (depois te mostro como gerar uma aleatória)
-API_KEY = "boston_2025_secret_8f9d2a1c9e7b3f6d5a4c8e2f1d0b9a8e7c6d5f4"  
+API_KEY = "boston_2025_secret_8f9d2a1c9e7b3f6d5a4c8e2f1d0b9a8e7c6d5f4"
 
 class HouseFeatures(BaseModel):
-    CRIM: float = Field(..., example=0.00632)
+    CRIM: float = Field(..., example=0.006)
     ZN: float = Field(..., example=18.0)
     INDUS: float = Field(..., example=2.31)
     CHAS: int = Field(..., example=0, ge=0, le=1)
@@ -32,26 +42,18 @@ class HouseFeatures(BaseModel):
     LSTAT: float = Field(..., example=4.98)
 
 @app.get("/")
-async def root():
-    return {"message": "API protegida com API Key + batch. Acesse /docs"}
+def root():
+    return {"message": "API do André Victor rodando 24/7 com modelo carregado!"}
 
 @app.post("/predict")
-async def predict_price(
-    houses: List[HouseFeatures],
-    x_api_key: str = Header(..., alias="X-API-Key")
-):
+def predict(houses: List[HouseFeatures], x_api_key: str = Header(..., alias="X-API-Key")):
     if x_api_key != API_KEY:
-        raise HTTPException(status_code=401, detail="API Key inválida")
-    
-    if len(houses) == 0:
-        raise HTTPException(status_code=400, detail="Lista vazia")
+        raise HTTPException(401, "API Key inválida")
     
     df = pd.DataFrame([h.dict() for h in houses])
     predictions = model.predict(df)
     
     return {
-        "total_predictions": len(predictions),
-        "prices_thousands_usd": [round(float(p), 2) for p in predictions],
-        "model": "RandomForestRegressor",
-        "status": "success"
+        "total_predições": len(predictions),
+        "preços_em_milhares_de_USD": [round(float(p), 2) for p in predictions]
     }
