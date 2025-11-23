@@ -47,6 +47,3 @@ def predict(houses: List[HouseFeatures], x_api_key: str = Header(alias="X-API-Ke
     df = pd.DataFrame([h.dict() for h in houses])
     pred = model.predict(df)
     return {"preços (mil USD)": [round(float(p), 2) for p in pred]}
-
-from google.colab import files
-files.download('main.py')
