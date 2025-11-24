@@ -3,6 +3,7 @@ import os
 import urllib.request
 from fastapi import FastAPI, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from pydantic import BaseModel, Field
 from typing import List
 import pandas as pd
@@ -25,6 +26,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# 🔥 ADICIONE ESTA LINHA - Corrige problema de documentação
+app.add_middleware(TrustedHostMiddleware, allowed_hosts=["*"])
 
 print("🔄 Inicializando API Boston Housing...")
 
