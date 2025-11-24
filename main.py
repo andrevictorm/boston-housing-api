@@ -1,5 +1,4 @@
-from fastapi import FastAPI, HTTPException, Header
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, Request, HTTPException
 from pydantic import BaseModel
 from typing import List
 import joblib
@@ -9,16 +8,7 @@ import urllib.request
 
 app = FastAPI()
 
-# CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-print("🚀 Iniciando Boston Housing API...")
+print("🚀 Iniciando API...")
 
 # Carregar modelo
 MODEL_PATH = "boston_model.pkl"
@@ -26,59 +16,39 @@ MODEL_URL = "https://github.com/andrevictorm/boston-housing-api/releases/downloa
 
 try:
     if not os.path.exists(MODEL_PATH):
-        print("📥 Baixando modelo...")
         urllib.request.urlretrieve(MODEL_URL, MODEL_PATH)
-    
     model = joblib.load(MODEL_PATH)
     print("✅ Modelo carregado!")
 except Exception as e:
-    print(f"❌ Erro no modelo: {e}")
+    print(f"❌ Erro: {e}")
     model = None
 
-API_KEY = "boston_2025_secret_8f9d2a1c9e7b3f6d5a4c8e2f1d0b9a8e7c6d5f4"
-
 class HouseFeatures(BaseModel):
-    CRIM: float
-    ZN: float  
-    INDUS: float
-    CHAS: int
-    NOX: float
-    RM: float
-    AGE: float
-    DIS: float
-    RAD: int
-    TAX: float
-    PTRATIO: float
-    B: float
-    LSTAT: float
+    CRIM: float; ZN: float; INDUS: float; CHAS: int; NOX: float
+    RM: float; AGE: float; DIS: float; RAD: int; TAX: float
+    PTRATIO: float; B: float; LSTAT: float
 
 @app.get("/")
-def root():
-    return {"message": "Boston Housing API", "status": "online"}
-
-@app.get("/health")
-def health():
-    return {"status": "healthy", "model_loaded": model is not None}
+def home():
+    return {"message": "Boston Housing API"}
 
 @app.post("/predict")
-def predict(houses: List[HouseFeatures], x_api_key: str = Header(...)):
-    if x_api_key != API_KEY:
+async def predict(request: Request):
+    # Verificar API key manualmente
+    api_key = request.headers.get("x-api-key")
+    if api_key != "boston_2025_secret_8f9d2a1c9e7b3f6d5a4c8e2f1d0b9a8e7c6d5f4":
         raise HTTPException(401, "API Key inválida")
     
     if not model:
         raise HTTPException(500, "Modelo não carregado")
     
     try:
-        df = pd.DataFrame([house.dict() for house in houses])
+        data = await request.json()
+        df = pd.DataFrame(data)
         predictions = model.predict(df)
         
-        return {
-            "predictions": [
-                {"house_index": i, "price": round(float(p), 2)}
-                for i, p in enumerate(predictions)
-            ]
-        }
+        return {"predictions": [round(float(p), 2) for p in predictions]}
     except Exception as e:
-        raise HTTPException(500, f"Erro: {str(e)}")
+        raise HTTPException(400, f"Erro: {str(e)}")
 
-print("✅ API pronta!")
+print("✅ API rodando!")
