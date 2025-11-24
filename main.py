@@ -47,9 +47,3 @@ def predict(houses: List[HouseFeatures], x_api_key: str = Header(alias="X-API-Ke
     df = pd.DataFrame([h.dict() for h in houses])
     pred = model.predict(df)
     return {"preços (mil USD)": [round(float(p), 2) for p in pred]}
-
-if __name__ == "__main__":
-    import uvicorn
-    import os
-    port = int(os.environ.get("PORT", 8000))
-    uvicorn.run("main:app", host="0.0.0.0", port=port)
