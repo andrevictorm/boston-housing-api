@@ -3,7 +3,6 @@ import os
 import urllib.request
 from fastapi import FastAPI, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from pydantic import BaseModel, Field
 from typing import List
 import pandas as pd
@@ -26,9 +25,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# 🔥 ADICIONE ESTA LINHA - Corrige problema de documentação
-app.add_middleware(TrustedHostMiddleware, allowed_hosts=["*"])
 
 print("🔄 Inicializando API Boston Housing...")
 
@@ -87,7 +83,8 @@ async def health_check():
         "service": "Boston Housing API"
     }
 
-@app.post("/predict")
+# 🔥 CORREÇÃO: Mudar para @app.api_route para aceitar ambos POST e OPTIONS (CORS)
+@app.api_route("/predict", methods=["POST", "OPTIONS"])
 async def predict(
     houses: List[HouseFeatures], 
     x_api_key: str = Header(..., alias="X-API-Key")
@@ -123,8 +120,8 @@ async def predict(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro na previsão: {str(e)}")
 
+print("✅ API Boston Housing inicializada com sucesso!")
+
 # Para execução local
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
-
-print("✅ API Boston Housing inicializada com sucesso!")
