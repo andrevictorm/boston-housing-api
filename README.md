@@ -1,33 +1,40 @@
-Contexto
+**Boston Housing Price Prediction API**
 
-Este projeto expõe um modelo de previsão de preços de casas de Boston como um serviço web. Usei FastAPI para criar um endpoint de previsão. O modelo é um RandomForest treinado com o conjunto Boston Housing. O objetivo é demonstrar um fluxo completo. Treino. serialização. API com autenticação por chave. predição em lote. documentação automática.
+Texto curto. API com FastAPI. Predição em lote. Autenticação por chave. Modelo RandomForest. Documentação automática em Swagger e Redoc.
 
-Porque este exemplo
+**Contexto**
 
-Serve como base para projetos de MLOps. Mostra boas práticas simples. Separação entre treino e serving. contrato de entrada e saída. validação básica. monitorização possível via logs. Pode ser ligado a CI. CD. Pode ser publicado em serviços como Render.
+Este projeto expõe um modelo de previsão de preços de casas de Boston como um serviço web. O modelo é um RandomForest treinado no conjunto Boston Housing. A API demonstra um fluxo completo. Treino. Serialização. Autenticação por chave. Predição em lote. Documentação automática.
 
-Dados e modelo
+**Porque este exemplo**
 
-O conjunto Boston Housing é usado para fins educativos. Foi muito utilizado em tutoria. Tem limitações e riscos de viés. Usei scikit learn. RandomForestRegressor. Treino offline. Guardei o artefacto com joblib. A API apenas carrega o modelo e faz inferência.
+Base para MLOps inicial. Mostra práticas simples. Separação entre treino e serving. Contrato de entrada e saída. Validação básica. Monitorização via logs. Integração com CI e CD. Deploy em serviços como Render.
 
-Segurança
+**Dados e modelo**
 
-A API pede uma chave no header X API Key. O valor deve vir de variável de ambiente. No repositório uso `BOSTON_API_KEY`. Em produção guarde a chave no gestor de segredos. Nunca faça commit de segredos.
+Conjunto Boston Housing para fins educativos. Possui limitações e risco de viés. Treino com scikit learn. Algoritmo RandomForestRegressor. Treino offline. Artefacto guardado com joblib. A API apenas carrega o modelo e faz inferência.
 
-Endpoints
+**Segurança**
 
-POST `/predict`. Recebe uma lista de casas. Retorna uma lista de previsões.
+A API exige chave no header X API Key. O valor deve vir de variável de ambiente. No repositório usa `BOSTON_API_KEY`. Em produção use um gestor de segredos. Nunca faça commit de segredos.
 
-Headers
+**Endpoints**
 
-`X-API-Key` com a chave válida.  
-`Content-Type` `application/json`.
+- POST `/predict`  
+  Recebe uma lista de casas. Retorna uma lista de previsões.
 
-Contrato de entrada
+**Headers**
 
-Lista de objetos com estas chaves. `CRIM` `ZN` `INDUS` `CHAS` `NOX` `RM` `AGE` `DIS` `RAD` `TAX` `PTRATIO` `B` `LSTAT`.
+- `X-API-Key` com a chave válida  
+- `Content-Type` `application/json`
 
-Exemplo de pedido
+**Contrato de entrada**
+
+Lista de objetos com chaves  
+`CRIM` `ZN` `INDUS` `CHAS` `NOX` `RM` `AGE` `DIS` `RAD` `TAX` `PTRATIO` `B` `LSTAT`  
+A coluna TAX é por valor total por \$10,000
+
+**Exemplo de pedido com curl**
 
 ```bash
 curl -X POST https://boston-housing-api-2.onrender.com/predict \
@@ -39,7 +46,7 @@ curl -X POST https://boston-housing-api-2.onrender.com/predict \
   ]'
 ```
 
-Exemplo em Python
+**Exemplo em Python**
 
 ```python
 import requests
@@ -58,7 +65,7 @@ r = requests.post(url, json=payload, headers=headers, timeout=20)
 print(r.status_code, r.json())
 ```
 
-Resposta
+**Resposta**
 
 ```json
 {
@@ -71,48 +78,51 @@ Resposta
 }
 ```
 
-Validação e erros
+**Validação e erros**
 
-Campos em falta geram `422 Unprocessable Entity`. Chave inválida gera `401 Unauthorized`. Erros internos devolvem `500 Internal Server Error` com um `trace_id` nos logs.
+- Campos em falta geram 422 Unprocessable Entity  
+- Chave inválida gera 401 Unauthorized  
+- Erros internos devolvem 500 Internal Server Error com `trace_id` nos logs
 
-Documentação
+**Documentação**
 
-Abrir `/docs` para Swagger UI. Abrir `/redoc` para Redoc.
+- Abrir `/docs` para Swagger UI  
+- Abrir `/redoc` para Redoc
 
-Execução local
+**Execução local**
 
 ```bash
 export BOSTON_API_KEY="boston_2025_secret_..."
 uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
-Testes rápidos
+**Teste rápido**
 
 ```bash
 curl -H "X-API-Key: $BOSTON_API_KEY" http://localhost:8000/health
 ```
 
-Estrutura
+**Estrutura do projeto**
 
-`app/main.py` inicia a FastAPI.  
-`app/routes.py` define `/predict`.  
-`app/schemas.py` define o modelo Pydantic.  
-`models/model.joblib` guarda o RandomForest.  
-`notebooks/` contém treino e exploração.  
-`tests/` contém testes de contrato.
+- `app/main.py` inicializa a FastAPI  
+- `app/routes.py` define `/predict`  
+- `app/schemas.py` define modelos Pydantic  
+- `models/model.joblib` guarda o RandomForest  
+- `notebooks/` contém treino e exploração  
+- `tests/` contém testes de contrato
 
-Batch prediction
+**Batch prediction**
 
-O endpoint aceita uma lista de casas. A API devolve um índice por casa. A aplicação de exemplo em Python recolhe inputs. envia em lote. imprime estatísticas simples.
+O endpoint aceita uma lista de casas. A resposta traz um índice por casa. O cliente em Python recolhe inputs. Envia em lote. Imprime estatísticas simples.
 
-Observabilidade
+**Observabilidade**
 
-Logs estruturados com `logging`. Campos de tempo. nível. rota. tempo de resposta. Pode ligar a CloudWatch. Stackdriver. ou Loki.
+Logs estruturados com `logging`. Time. Nível. Rota. Latência. Integra com CloudWatch. Stackdriver. Loki.
 
-Limitações
+**Limitações**
 
-Conjunto de dados antigo. risco de viés. O alvo está em mil dólares. O modelo não é aconselhado para decisão real. Use apenas como demonstração técnica.
+Conjunto antigo com risco de viés. O alvo está em mil dólares. O modelo não é indicado para decisão real. Uso apenas demonstrativo.
 
-Licença
+**Licença**
 
 Uso educativo. Sem garantias.
