@@ -1,6 +1,6 @@
 **Boston Housing Price Prediction API**
 
-Texto curto. API com FastAPI. Predição em lote. Autenticação por chave. Modelo RandomForest. Documentação automática em Swagger e Redoc.
+API com FastAPI. Predição em lote. Autenticação por chave. Modelo RandomForest. Documentação automática em Swagger e Redoc.
 
 **Contexto**
 
