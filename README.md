@@ -2,6 +2,8 @@
 
 API com FastAPI. Predição em lote. Autenticação por chave. Modelo RandomForest. Documentação automática em Swagger e Redoc.
 
+https://dashboard.render.com/web/srv-d4hun0umcj7s73c9bmlg/deploys/dep-d4hun16mcj7s73c9bmtg?r=2025-11-24%4005%3A21%3A13%7E2025-11-24%4005%3A25%3A51
+
 **Contexto**
 
 Este projeto expõe um modelo de previsão de preços de casas de Boston como um serviço web. O modelo é um RandomForest treinado no conjunto Boston Housing. A API demonstra um fluxo completo. Treino. Serialização. Autenticação por chave. Predição em lote. Documentação automática.
